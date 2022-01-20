@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
-import { Auth, createUserWithEmailAndPassword, signInWithEmailAndPassword} from '@angular/fire/auth';
-import { collection, Firestore, doc, setDoc } from '@angular/fire/firestore';
+import { Auth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from '@angular/fire/auth';
+import { collection, doc, Firestore, setDoc, updateDoc } from '@angular/fire/firestore';
 import { user } from 'rxfire/auth';
 import { docData } from 'rxfire/firestore';
 import { from, map, of, switchMap, tap } from 'rxjs';
+
 import { User } from '../../models/user';
 
 @Injectable({
@@ -47,6 +48,21 @@ export class AuthService {
     const users = collection(this.db, 'users');
     const userDoc = doc(users, uid);
 
-    return docData(userDoc).pipe(map((data)=> data as User));
+    return docData(userDoc).pipe(
+      map((data)=> (
+      {...data, birthdate: data['birthdate'].toDate()
+      } as User))
+    );
+  }
+
+  update(user: User) {
+    const users = collection(this.db, 'users');
+    const userDoc = doc(users, user.uid);
+
+    return from(updateDoc(userDoc, user as any));
+  }
+
+  logout(){
+    this.auth.signOut();
   }
 }
